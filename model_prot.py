@@ -171,7 +171,7 @@ class TensorProductConvLayer(torch.nn.Module):
 
     def forward(self, node_attr, edge_index, edge_attr, edge_sh, out_nodes=None, reduce='mean'):
         edge_src, edge_dst = edge_index
-        tp = self.tp(node_attr[edge_dst], edge_sh, self.fc(edge_attr))
+        tp = self.tp(node_attr[edge_dst].cuda(), edge_sh.cuda(), self.fc(edge_attr.cuda()))
 
         out_nodes = out_nodes or node_attr.shape[0]
         out = scatter(tp, edge_src, dim=0, dim_size=out_nodes, reduce=reduce)
