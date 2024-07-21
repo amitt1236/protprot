@@ -9,7 +9,6 @@ from torch.optim import Adam
 from pathlib import Path
 from tqdm import tqdm
 import torch.nn as nn
-import wandb
 import torch
 import copy
 import json
@@ -45,7 +44,7 @@ def training(model, tokenizer, hyper_params, loader, epochs, device):
             optimizer.step()
             recon_losses.append(recon_loss)
         
-        wandb.log({"loss": sum(recon_losses) / len(recon_losses)})
+        print(f'epoch: {epoch} loss : {sum(recon_losses) / len(recon_losses)}')
         if epoch not in [0, 5] and epoch % 5 == 0:
             # save model for current validation
             cur_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -151,13 +150,6 @@ def main():
     print(hyper_params)
     print('*' *20, 'parameters', '*' * 20)
 
-    # start a new wandb run to track this script
-    wandb.init(
-        # set the wandb project where this run will be logged
-        project="protprot",
-        # track hyperparameters and run metadata
-        config=hyper_params
-    )
     train_data_dir = './data/fsmol/train_data.csv'
     protein_graph_dir = './train_graphs'
     tokenizer = load_tokenizer_from_file ('./data/base_tok.json')
