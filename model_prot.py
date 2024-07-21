@@ -32,9 +32,9 @@ class Protmod(torch.nn.Module):
         self.ns, self.nv = ns, nv
         self.num_conv_layers = num_conv_layers
 
-        self.rec_node_embedding = AtomEncoder(emb_dim=ns, feature_dims=rec_residue_feature_dims)
-        self.rec_edge_embedding = nn.Sequential(nn.Linear(distance_embed_dim, ns), nn.ReLU(), nn.Dropout(dropout), nn.Linear(ns, ns))
-        self.rec_distance_expansion = GaussianSmearing(0.0, rec_max_radius, distance_embed_dim)
+        self.rec_node_embedding = AtomEncoder(emb_dim=ns, feature_dims=rec_residue_feature_dims).cuda()
+        self.rec_edge_embedding = nn.Sequential(nn.Linear(distance_embed_dim, ns), nn.ReLU(), nn.Dropout(dropout), nn.Linear(ns, ns)).cuda()
+        self.rec_distance_expansion = GaussianSmearing(0.0, rec_max_radius, distance_embed_dim).cuda()
 
         if use_second_order_repr:
             irrep_seq = [
