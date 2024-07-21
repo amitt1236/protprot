@@ -73,7 +73,7 @@ class Protmod(torch.nn.Module):
     def forward(self, data, eps=1e-12):
         # builds the receptor initial node and edge embeddings
         node_attr = torch.cat([data['receptor'].x, data['receptor'].chis.sin() * data['receptor'].chi_masks,
-                               data['receptor'].chis.cos() * data['receptor'].chi_masks], 1)
+                               data['receptor'].chis.cos() * data['receptor'].chi_masks], 1).cuda()
 
         # this assumes the edges were already created in preprocessing since protein's structure is fixed
         edge_index = radius_graph(data['receptor'].pos, self.rec_max_radius, data['receptor'].batch,
@@ -85,7 +85,7 @@ class Protmod(torch.nn.Module):
         edge_vec = data['receptor'].pos[dst.long()] - data['receptor'].pos[src.long()]
 
         # edge length (encoded with gussian smearing)
-        edge_length_embedded = self.rec_distance_expansion(edge_vec.norm(dim=-1))
+        edge_length_embedded = self.rec_distance_expansion(edge_vec.norm(dim=-1)).cuda()
 
         # sphirical harmonics for a richer describtor of the relative positions
         edge_sh = o3.spherical_harmonics(self.sh_irreps, edge_vec, normalize=True, normalization='component')
@@ -98,9 +98,9 @@ class Protmod(torch.nn.Module):
 
             if l == 0:
                 n_vec = data['receptor'].lf_3pts[:, 0] - data['receptor'].lf_3pts[:, 1]
-                n_norm_vec = n_vec / (n_vec.norm(dim=-1, keepdim=True) + eps)
+                n_norm_vec = n_vec / (n_vec.norm(dim=-1, keepdim=True) + eps).cuda()
                 c_vec = data['receptor'].lf_3pts[:, 2] - data['receptor'].lf_3pts[:, 1]
-                c_norm_vec = c_vec / (c_vec.norm(dim=-1, keepdim=True) + eps)
+                c_norm_vec = c_vec / (c_vec.norm(dim=-1, keepdim=True) + eps).cuda()
 
             edge_attr_ = torch.cat(
                 [edge_attr, node_attr[src, :self.ns], node_attr[dst, :self.ns]], -1)
