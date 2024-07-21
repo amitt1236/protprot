@@ -88,7 +88,7 @@ class Protmod(torch.nn.Module):
         edge_length_embedded = self.rec_distance_expansion(edge_vec.norm(dim=-1)).cuda()
 
         # sphirical harmonics for a richer describtor of the relative positions
-        edge_sh = o3.spherical_harmonics(self.sh_irreps, edge_vec, normalize=True, normalization='component')
+        edge_sh = o3.spherical_harmonics(self.sh_irreps, edge_vec, normalize=True, normalization='component').cuda()
 
         # embd
         node_attr = self.rec_node_embedding(node_attr)
