@@ -32,9 +32,9 @@ class Protmod(torch.nn.Module):
         self.ns, self.nv = ns, nv
         self.num_conv_layers = num_conv_layers
 
-        self.rec_node_embedding = AtomEncoder(emb_dim=ns, feature_dims=rec_residue_feature_dims).cuda()
-        self.rec_edge_embedding = nn.Sequential(nn.Linear(distance_embed_dim, ns), nn.ReLU(), nn.Dropout(dropout), nn.Linear(ns, ns)).cuda()
-        self.rec_distance_expansion = GaussianSmearing(0.0, rec_max_radius, distance_embed_dim).cuda()
+        self.rec_node_embedding = AtomEncoder(emb_dim=ns, feature_dims=rec_residue_feature_dims)
+        self.rec_edge_embedding = nn.Sequential(nn.Linear(distance_embed_dim, ns), nn.ReLU(), nn.Dropout(dropout), nn.Linear(ns, ns))
+        self.rec_distance_expansion = GaussianSmearing(0.0, rec_max_radius, distance_embed_dim)
 
         if use_second_order_repr:
             irrep_seq = [
@@ -106,7 +106,7 @@ class Protmod(torch.nn.Module):
                 [edge_attr, node_attr[src, :self.ns], node_attr[dst, :self.ns]], -1).cuda()
             
             if l == 0:
-                node_attr = self.rec_conv_layers[l](torch.cat([node_attr, n_norm_vec, c_norm_vec].cuda(), dim=-1).cuda(),
+                node_attr = self.rec_conv_layers[l](torch.cat([node_attr, n_norm_vec, c_norm_vec].cuda(), dim=-1),
                                                         edge_index.cuda(), edge_attr_, edge_sh)
             else:
                 node_attr = self.rec_conv_layers[l](node_attr, edge_index, edge_attr_, edge_sh)
@@ -171,7 +171,7 @@ class TensorProductConvLayer(torch.nn.Module):
 
     def forward(self, node_attr, edge_index, edge_attr, edge_sh, out_nodes=None, reduce='mean'):
         edge_src, edge_dst = edge_index
-        tp = self.tp(node_attr[edge_dst], edge_sh, self.fc(edge_attr.cuda()))
+        tp = self.tp(node_attr[edge_dst], edge_sh, self.fc(edge_attr))
 
         out_nodes = out_nodes or node_attr.shape[0]
         out = scatter(tp, edge_src, dim=0, dim_size=out_nodes, reduce=reduce)
