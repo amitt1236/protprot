@@ -106,7 +106,7 @@ class Protmod(torch.nn.Module):
                 [edge_attr, node_attr[src, :self.ns], node_attr[dst, :self.ns]], -1).cuda()
             
             if l == 0:
-                node_attr = self.rec_conv_layers[l](torch.cat([node_attr, n_norm_vec, c_norm_vec], dim=-1),
+                node_attr = self.rec_conv_layers[l](torch.cat([node_attr, n_norm_vec, c_norm_vec], dim=-1).cuda(),
                                                         edge_index.cuda(), edge_attr_, edge_sh)
             else:
                 node_attr = self.rec_conv_layers[l](node_attr, edge_index, edge_attr_, edge_sh)
