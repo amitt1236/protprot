@@ -25,7 +25,7 @@ def training(model, tokenizer, hyper_params, loader, epochs, device):
         model.train()
         for cur_tok_backbone, cur_tok_chain, cur_protein, cur_label, add_info in loader:
             optimizer.zero_grad()
-            cur_protein_graph = cur_protein.to(device)
+            cur_protein_graph = cur_protein
 
             encoder_tokenized_in = cur_tok_backbone.to(device)
 
@@ -166,7 +166,7 @@ def main():
                                                             hidden_size=hyper_params['embedding_dim'], nhead=hyper_params['decoder_n_head'],
                                                             n_layers=hyper_params['decoder_n_layer'],
                                                             max_length=hyper_params['max_mol_len']))
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'mps')
     load_model = False
     if load_model:
         model_path = "./models/nn"

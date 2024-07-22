@@ -11,7 +11,7 @@ from utils import rec_residue_feature_dims
 
 class Protmod(torch.nn.Module):
     def __init__(self, sh_lmax=2, ns=64, nv=16, num_conv_layers=2, rec_max_radius=15, c_alpha_max_neighbors=24,
-                 distance_embed_dim=32, use_second_order_repr=False, batch_norm=True, dropout=0.0):
+                 distance_embed_dim=32, use_second_order_repr=False, batch_norm=True, dropout=0.0, device='mps'):
         """
         @param sh_lmax: spherical_harmonics
         @param ns: Number of hidden features per node of order 0
@@ -31,6 +31,7 @@ class Protmod(torch.nn.Module):
         self.sh_irreps = o3.Irreps.spherical_harmonics(lmax=sh_lmax)
         self.ns, self.nv = ns, nv
         self.num_conv_layers = num_conv_layers
+        self.device = device
 
         self.rec_node_embedding = AtomEncoder(emb_dim=ns, feature_dims=rec_residue_feature_dims)
         self.rec_edge_embedding = nn.Sequential(nn.Linear(distance_embed_dim, ns), nn.ReLU(), nn.Dropout(dropout), nn.Linear(ns, ns))
@@ -82,39 +83,39 @@ class Protmod(torch.nn.Module):
         # create edge vec
         edge_index = edge_index[[1, 0]]
         src, dst = edge_index
-        edge_vec = data['receptor'].pos[dst.long()] - data['receptor'].pos[src.long()]
+        edge_vec = (data['receptor'].pos[dst.long()] - data['receptor'].pos[src.long()]).to(self.device)
 
         # edge length (encoded with gussian smearing)
         edge_length_embedded = self.rec_distance_expansion(edge_vec.norm(dim=-1))
 
         # sphirical harmonics for a richer describtor of the relative positions
-        edge_sh = o3.spherical_harmonics(self.sh_irreps, edge_vec, normalize=True, normalization='component')
+        edge_sh = o3.spherical_harmonics(self.sh_irreps, edge_vec, normalize=True, normalization='component').to(self.device)
 
         # embd
+        node_attr = node_attr.to(self.device)
         node_attr = self.rec_node_embedding(node_attr)
         edge_attr = self.rec_edge_embedding(edge_length_embedded)
 
         for l in range(len(self.rec_conv_layers)):
 
             if l == 0:
-                n_vec = data['receptor'].lf_3pts[:, 0] - data['receptor'].lf_3pts[:, 1]
+                n_vec = (data['receptor'].lf_3pts[:, 0] - data['receptor'].lf_3pts[:, 1]).to(self.device)
                 n_norm_vec = n_vec / (n_vec.norm(dim=-1, keepdim=True) + eps)
-                c_vec = data['receptor'].lf_3pts[:, 2] - data['receptor'].lf_3pts[:, 1]
+                c_vec = (data['receptor'].lf_3pts[:, 2] - data['receptor'].lf_3pts[:, 1]).to(self.device)
                 c_norm_vec = c_vec / (c_vec.norm(dim=-1, keepdim=True) + eps)
 
             edge_attr_ = torch.cat(
-                [edge_attr, node_attr[src, :self.ns], node_attr[dst, :self.ns]], -1)
+                [edge_attr, node_attr[src, :self.ns], node_attr[dst, :self.ns]], -1).to(self.device)
             
             if l == 0:
                 node_attr = self.rec_conv_layers[l](torch.cat([node_attr, n_norm_vec, c_norm_vec], dim=-1),
-                                                        edge_index, edge_attr_, edge_sh)
+                                                        edge_index.to(self.device), edge_attr_, edge_sh)
             else:
                 node_attr = self.rec_conv_layers[l](node_attr, edge_index, edge_attr_, edge_sh)
 
         emb = pyg_nn.global_mean_pool(node_attr, data['receptor'].batch)
         
         return emb
-
 
 
 
@@ -146,7 +147,6 @@ class AtomEncoder(torch.nn.Module):
                 x[:, self.num_categorical_features:self.num_categorical_features + self.num_scalar_features])
         x_embedding = self.lm_embedding_layer(torch.cat([x_embedding, x[:, -self.lm_embedding_dim:]], axis=1))
         return x_embedding
-
 
 class TensorProductConvLayer(torch.nn.Module):
     def __init__(self, in_irreps, sh_irreps, out_irreps, n_edge_features, residual=True, batch_norm=True, dropout=0.0,
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     loader_class = DataListLoader if torch.cuda.is_available() else DataLoader
     train_loader = loader_class(dataset=train_dataset, batch_size=2, num_workers=0, pin_memory=True)
     from model_prot import Protmod
-    m = Protmod()
+    m = Protmod().to('cpu')
     for g in train_loader:
         x = m(g)
         print(1)
