@@ -113,7 +113,7 @@ class Protmod(torch.nn.Module):
             else:
                 node_attr = self.rec_conv_layers[l](node_attr, edge_index, edge_attr_, edge_sh)
 
-        emb = pyg_nn.global_mean_pool(node_attr, data['receptor'].batch)
+        emb = pyg_nn.global_mean_pool(node_attr, data['receptor'].batch.to('cuda'))
         
         return emb
 
