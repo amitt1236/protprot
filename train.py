@@ -20,10 +20,10 @@ def training(model, tokenizer, hyper_params, loader, epochs, device):
     optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'],fused=True)
     recon_loss_fn = nn.CrossEntropyLoss()
 
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs)):
         recon_losses = []
         model.train()
-        for cur_tok_backbone, cur_tok_chain, cur_protein, cur_label, add_info in tqdm(loader, total=len(loader)):
+        for cur_tok_backbone, cur_tok_chain, cur_protein, cur_label, add_info in loader:
             optimizer.zero_grad()
             cur_protein_graph = cur_protein
 
@@ -45,7 +45,7 @@ def training(model, tokenizer, hyper_params, loader, epochs, device):
             recon_losses.append(recon_loss)
         
         print(f'epoch: {epoch} loss : {sum(recon_losses) / len(recon_losses)}')
-        if epoch not in [0, 5] and epoch % 5 == 0:
+        if epoch != 0 and epoch % 5 == 0:
             # save model for current validation
             cur_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             output_dir = Path(f'./models/{cur_time}/epoch{epoch + 1}')
