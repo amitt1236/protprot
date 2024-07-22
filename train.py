@@ -45,7 +45,7 @@ def training(model, tokenizer, hyper_params, loader, epochs, device):
             recon_losses.append(recon_loss)
         
             print(f'epoch: {epoch} loss : {sum(recon_losses) / len(recon_losses)}')
-            if epoch != 0 and epoch % 5 == 0:
+            if epoch % 5 == 0:
                 # save model for current validation
                 cur_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
                 output_dir = Path(f'./models/{cur_time}/epoch{epoch + 1}')
