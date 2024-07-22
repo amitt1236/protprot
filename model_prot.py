@@ -69,6 +69,7 @@ class Protmod(torch.nn.Module):
                 dropout=dropout
             )
             self.rec_conv_layers.append(rec_layer)
+            self.rec_conv_layers = nn.ModuleList(self.rec_conv_layers)
 
 
     def forward(self, data, eps=1e-12):
@@ -113,7 +114,7 @@ class Protmod(torch.nn.Module):
             else:
                 node_attr = self.rec_conv_layers[l](node_attr, edge_index, edge_attr_, edge_sh)
 
-        emb = pyg_nn.global_mean_pool(node_attr, data['receptor'].batch.to('cuda'))
+        emb = pyg_nn.global_mean_pool(node_attr, data['receptor'].batch.to(self.device))
         
         return emb
 
@@ -159,15 +160,15 @@ class TensorProductConvLayer(torch.nn.Module):
         if hidden_features is None:
             hidden_features = n_edge_features
 
-        self.tp = tp = o3.FullyConnectedTensorProduct(in_irreps, sh_irreps, out_irreps, shared_weights=False).to('cuda')
+        self.tp = tp = o3.FullyConnectedTensorProduct(in_irreps, sh_irreps, out_irreps, shared_weights=False)
 
         self.fc = nn.Sequential(
             nn.Linear(n_edge_features, hidden_features),
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(hidden_features, tp.weight_numel)
-        ).to('cuda')
-        self.batch_norm = BatchNorm(out_irreps).to('cuda') if batch_norm else None
+        )
+        self.batch_norm = BatchNorm(out_irreps) if batch_norm else None
 
     def forward(self, node_attr, edge_index, edge_attr, edge_sh, out_nodes=None, reduce='mean'):
         edge_src, edge_dst = edge_index
