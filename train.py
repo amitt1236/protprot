@@ -168,6 +168,7 @@ def main():
                                                             n_layers=hyper_params['decoder_n_layer'],
                                                             max_length=hyper_params['max_mol_len']))
     device = torch.device('cuda' if torch.cuda.is_available() else 'mps')
+    model.to(device)
     optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
 
     load_model = False
@@ -179,8 +180,6 @@ def main():
         tokenizer = load_tokenizer_from_file(f'{model_path}/tokenizer_object.json')
         optimizer = loaded['optimizer_state_dict']
         cur_epoch = loaded['cur_epoch']
-
-    model.to(device)
 
     train_loader = DataLoader(train_ds, batch_size=2, shuffle=True)
     training(model, optimizer, tokenizer, train_loader, 20, device, cur_epoch=cur_epoch)
