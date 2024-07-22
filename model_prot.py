@@ -159,7 +159,7 @@ class TensorProductConvLayer(torch.nn.Module):
         if hidden_features is None:
             hidden_features = n_edge_features
 
-        self.tp = tp = o3.FullyConnectedTensorProduct(in_irreps, sh_irreps, out_irreps, shared_weights=False)
+        self.tp = tp = o3.FullyConnectedTensorProduct(in_irreps, sh_irreps, out_irreps, shared_weights=False).to('cuda')
 
         self.fc = nn.Sequential(
             nn.Linear(n_edge_features, hidden_features),
@@ -167,7 +167,7 @@ class TensorProductConvLayer(torch.nn.Module):
             nn.Dropout(dropout),
             nn.Linear(hidden_features, tp.weight_numel)
         ).to('cuda')
-        self.batch_norm = BatchNorm(out_irreps) if batch_norm else None
+        self.batch_norm = BatchNorm(out_irreps).to('cuda') if batch_norm else None
 
     def forward(self, node_attr, edge_index, edge_attr, edge_sh, out_nodes=None, reduce='mean'):
         edge_src, edge_dst = edge_index
