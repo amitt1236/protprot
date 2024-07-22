@@ -44,18 +44,17 @@ def training(model, tokenizer, hyper_params, loader, epochs, device):
             optimizer.step()
             recon_losses.append(recon_loss)
         
-            print(f'epoch: {epoch} loss : {sum(recon_losses) / len(recon_losses)}')
-            if epoch % 5 == 0:
-                # save model for current validation
-                cur_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-                output_dir = Path(f'./models/{cur_time}/epoch{epoch + 1}')
-                output_dir.mkdir(parents=True, exist_ok=True)
-                torch.save(copy.deepcopy(model.state_dict()), f'{str(output_dir)}/model.pt')
-                with open(f'{str(output_dir)}/hyper_params.json', 'w') as f:
-                    json.dump(hyper_params, f, indent=4)
-                tokenizer.save(f'{str(output_dir)}/tokenizer_object.json')
-                print("*"  * 20 + "model saved" + "*" * 20)
-            exit()
+        print(f'epoch: {epoch} loss : {sum(recon_losses) / len(recon_losses)}')
+        if epoch != 0 and epoch % 5 == 0:
+            # save model for current validation
+            cur_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            output_dir = Path(f'./models/{cur_time}/epoch{epoch + 1}')
+            output_dir.mkdir(parents=True, exist_ok=True)
+            torch.save(copy.deepcopy(model.state_dict()), f'{str(output_dir)}/model.pt')
+            with open(f'{str(output_dir)}/hyper_params.json', 'w') as f:
+                json.dump(hyper_params, f, indent=4)
+            tokenizer.save(f'{str(output_dir)}/tokenizer_object.json')
+            print("*"  * 20 + "model saved" + "*" * 20)
 
 def validation_step(model, tokenizer, hyper_params, device, split=1, prot_path = './test_graphs'):
     from torch_geometric.data.batch import Batch
