@@ -165,7 +165,7 @@ class TensorProductConvLayer(torch.nn.Module):
             nn.Linear(n_edge_features, hidden_features),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_features, tp.weight_numel)
+            nn.Linear(hidden_features, tp.weight_numel).to('cuda')
         )
         self.batch_norm = BatchNorm(out_irreps) if batch_norm else None
 
