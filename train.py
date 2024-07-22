@@ -9,6 +9,7 @@ from torch.optim import Adam
 from pathlib import Path
 from tqdm import tqdm
 import torch.nn as nn
+import gc
 import torch
 import copy
 import json
@@ -55,7 +56,8 @@ def training(model, tokenizer, hyper_params, loader, epochs, device):
                 json.dump(hyper_params, f, indent=4)
             tokenizer.save(f'{str(output_dir)}/tokenizer_object.json')
             print("*"  * 20 + "model saved" + "*" * 20)
-
+            gc.collect()
+            
 def validation_step(model, tokenizer, hyper_params, device, split=1, prot_path = './test_graphs'):
     from torch_geometric.data.batch import Batch
     if split == 0:
