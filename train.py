@@ -17,7 +17,7 @@ import os
 def training(model, tokenizer, hyper_params, loader, epochs, device):
 
     print(f'model has: {sum(p.numel() for p in model.parameters() if p.requires_grad)} parameters')
-    optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
+    optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'],fused=True)
     recon_loss_fn = nn.CrossEntropyLoss()
 
     for epoch in range(epochs):
