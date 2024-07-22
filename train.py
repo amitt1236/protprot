@@ -157,7 +157,7 @@ def main():
 
     train_ds = InteractionsDataset(train_data_dir, protein_graph_dir, tokenizer)
 
-    model = InteractionTranslator(prot_encoder=InteractionEncoder(hyper_params['embedding_dim'],hidden=160, ns=64 ,nv=16),
+    model = InteractionTranslator(prot_encoder=InteractionEncoder(hyper_params['embedding_dim'],hidden=40, ns=16 ,nv=4),
                                 mol_encoder=TransformerEncoder(len(tokenizer.get_vocab()), embedding_dim=hyper_params['embedding_dim'],
                                                                 hidden_size=hyper_params['embedding_dim'], nhead=hyper_params['encoder_n_head'],
                                                                 n_layers=hyper_params['encoder_n_layer'],
@@ -168,9 +168,9 @@ def main():
                                                             n_layers=hyper_params['decoder_n_layer'],
                                                             max_length=hyper_params['max_mol_len']))
     device = torch.device('cuda' if torch.cuda.is_available() else 'mps')
-    load_model = False
+    load_model = True
     if load_model:
-        model_path = "./models/nn"
+        model_path = "./"
         model.load_state_dict(torch.load(f'{model_path}/model.pt', map_location=device))
         tokenizer = load_tokenizer_from_file(f'{model_path}/tokenizer_object.json')
 
