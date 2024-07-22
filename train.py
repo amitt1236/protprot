@@ -15,13 +15,13 @@ import copy
 import json
 import os
 
-def training(model, tokenizer, hyper_params, loader, epochs, device):
+def training(model, tokenizer, hyper_params, loader, epochs, device, cur_epoch=0):
 
     print(f'model has: {sum(p.numel() for p in model.parameters() if p.requires_grad)} parameters')
     optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'],fused=True)
     recon_loss_fn = nn.CrossEntropyLoss()
 
-    for epoch in tqdm(range(epochs)):
+    for epoch in tqdm(range(cur_epoch, epochs)):
         recon_losses = []
         model.train()
         for cur_tok_backbone, cur_tok_chain, cur_protein, cur_label, add_info in loader:
@@ -56,7 +56,7 @@ def training(model, tokenizer, hyper_params, loader, epochs, device):
                 json.dump(hyper_params, f, indent=4)
             tokenizer.save(f'{str(output_dir)}/tokenizer_object.json')
             print("*"  * 20 + "model saved" + "*" * 20)
-            gc.collect()
+        gc.collect()
             
 def validation_step(model, tokenizer, hyper_params, device, split=1, prot_path = './test_graphs'):
     from torch_geometric.data.batch import Batch
