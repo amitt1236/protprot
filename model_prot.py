@@ -11,7 +11,7 @@ from utils import rec_residue_feature_dims
 
 class Protmod(torch.nn.Module):
     def __init__(self, sh_lmax=2, ns=64, nv=16, num_conv_layers=2, rec_max_radius=15, c_alpha_max_neighbors=24,
-                 distance_embed_dim=32, use_second_order_repr=False, batch_norm=True, dropout=0.0, device='mps'):
+                 distance_embed_dim=32, use_second_order_repr=False, batch_norm=True, dropout=0.0, device='cuda'):
         """
         @param sh_lmax: spherical_harmonics
         @param ns: Number of hidden features per node of order 0
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     loader_class = DataListLoader if torch.cuda.is_available() else DataLoader
     train_loader = loader_class(dataset=train_dataset, batch_size=2, num_workers=0, pin_memory=True)
     from model_prot import Protmod
-    m = Protmod().to('cpu')
+    m = Protmod().to('mps')
     for g in train_loader:
         x = m(g)
         print(1)
