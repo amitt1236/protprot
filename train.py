@@ -11,20 +11,17 @@ from tqdm import tqdm
 import torch.nn as nn
 import gc
 import torch
-import copy
-import json
 import os
 
-def training(model, tokenizer, hyper_params, loader, epochs, device, cur_epoch=0):
+def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
 
     print(f'model has: {sum(p.numel() for p in model.parameters() if p.requires_grad)} parameters')
-    optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'],fused=True)
     recon_loss_fn = nn.CrossEntropyLoss()
 
     for epoch in tqdm(range(cur_epoch, epochs)):
         recon_losses = []
         model.train()
-        for cur_tok_backbone, cur_tok_chain, cur_protein, cur_label, add_info in loader:
+        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in loader:
             optimizer.zero_grad()
             cur_protein_graph = cur_protein
 
@@ -47,15 +44,18 @@ def training(model, tokenizer, hyper_params, loader, epochs, device, cur_epoch=0
         
         print(f'epoch: {epoch} loss : {sum(recon_losses) / len(recon_losses)}')
         if epoch != 0 and epoch !=1:
-            # save model for current validation
             cur_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             output_dir = Path(f'./models/{cur_time}/epoch{epoch + 1}')
             output_dir.mkdir(parents=True, exist_ok=True)
-            torch.save(copy.deepcopy(model.state_dict()), f'{str(output_dir)}/model.pt')
-            with open(f'{str(output_dir)}/hyper_params.json', 'w') as f:
-                json.dump(hyper_params, f, indent=4)
+
+            torch.save({
+                'epoch': epoch+1,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+            },f'{str(output_dir)}/model.pt')
             tokenizer.save(f'{str(output_dir)}/tokenizer_object.json')
             print("*"  * 20 + "model saved" + "*" * 20)
+        
         gc.collect()
             
 def validation_step(model, tokenizer, hyper_params, device, split=1, prot_path = './test_graphs'):
@@ -168,18 +168,22 @@ def main():
                                                             n_layers=hyper_params['decoder_n_layer'],
                                                             max_length=hyper_params['max_mol_len']))
     device = torch.device('cuda' if torch.cuda.is_available() else 'mps')
-    load_model = True
+    optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
+
+    load_model = False
+    cur_epoch = 0
     if load_model:
         model_path = "./"
-        model.load_state_dict(torch.load(f'{model_path}/model.pt', map_location=device))
+        loaded = torch.load(f'{model_path}/model.pt')
+        model.load_state_dict(loaded['model_state_dict'], map_location=device)
         tokenizer = load_tokenizer_from_file(f'{model_path}/tokenizer_object.json')
+        optimizer = loaded['optimizer_state_dict']
+        cur_epoch = loaded['cur_epoch']
 
     model.to(device)
 
     train_loader = DataLoader(train_ds, batch_size=2, shuffle=True)
-    # validation_step(model, tokenizer, hyper_params, device, split=1)
-
-    training(model, tokenizer, hyper_params, train_loader, 20,device)
+    training(model, optimizer, tokenizer, train_loader, 20, device, cur_epoch=cur_epoch)
 
 if __name__ == "__main__":
     main()
