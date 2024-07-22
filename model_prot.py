@@ -174,7 +174,7 @@ class TensorProductConvLayer(torch.nn.Module):
         tp = self.tp(node_attr[edge_dst], edge_sh, self.fc(edge_attr))
 
         out_nodes = out_nodes or node_attr.shape[0]
-        out = scatter(tp, edge_src, dim=0, dim_size=out_nodes, reduce=reduce)
+        out = scatter(tp, edge_src.to('cuda'), dim=0, dim_size=out_nodes, reduce=reduce)
 
         if self.residual:
             padded = F.pad(node_attr, (0, out.shape[-1] - node_attr.shape[-1]))
