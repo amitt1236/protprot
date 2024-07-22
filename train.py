@@ -43,6 +43,8 @@ def training(model, tokenizer, hyper_params, loader, epochs, device):
             recon_loss.backward()
             optimizer.step()
             recon_losses.append(recon_loss)
+            torch.cuda.empty_cache()
+            print('stepistep')
         
         print(f'epoch: {epoch} loss : {sum(recon_losses) / len(recon_losses)}')
         if epoch not in [0, 5] and epoch % 5 == 0:
