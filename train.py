@@ -20,10 +20,10 @@ def training(model, tokenizer, hyper_params, loader, epochs, device):
     optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
     recon_loss_fn = nn.CrossEntropyLoss()
 
-    for epoch in tqdm(range(epochs)):
+    for epoch in range(epochs):
         recon_losses = []
         model.train()
-        for cur_tok_backbone, cur_tok_chain, cur_protein, cur_label, add_info in loader:
+        for cur_tok_backbone, cur_tok_chain, cur_protein, cur_label, add_info in tqdm(loader, total=len(loader)):
             optimizer.zero_grad()
             cur_protein_graph = cur_protein
 
