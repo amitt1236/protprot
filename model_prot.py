@@ -165,8 +165,8 @@ class TensorProductConvLayer(torch.nn.Module):
             nn.Linear(n_edge_features, hidden_features),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_features, tp.weight_numel).to('cuda')
-        )
+            nn.Linear(hidden_features, tp.weight_numel)
+        ).to('cuda')
         self.batch_norm = BatchNorm(out_irreps) if batch_norm else None
 
     def forward(self, node_attr, edge_index, edge_attr, edge_sh, out_nodes=None, reduce='mean'):
