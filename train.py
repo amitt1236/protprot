@@ -10,6 +10,7 @@ from pathlib import Path
 from tqdm import tqdm
 import torch.nn as nn
 import gc
+import copy
 import torch
 import os
 
@@ -18,10 +19,10 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
     print(f'model has: {sum(p.numel() for p in model.parameters() if p.requires_grad)} parameters')
     recon_loss_fn = nn.CrossEntropyLoss()
 
-    for epoch in epochs:
+    for epoch in tqdm(range(cur_epoch, epochs)):
         recon_losses = []
         model.train()
-        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in tqdm(loader):
+        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in loader:
             optimizer.zero_grad()
             cur_protein_graph = cur_protein
 
@@ -51,7 +52,7 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
             torch.save({
                 'epoch': epoch+1,
                 'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
+                'optimizer_state_dict': copy.deepcopy(optimizer.state_dict()),
             },f'{str(output_dir)}/model.pt')
             tokenizer.save(f'{str(output_dir)}/tokenizer_object.json')
             print("*"  * 20 + "model saved" + "*" * 20)
