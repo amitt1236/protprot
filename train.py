@@ -18,10 +18,10 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
     print(f'model has: {sum(p.numel() for p in model.parameters() if p.requires_grad)} parameters')
     recon_loss_fn = nn.CrossEntropyLoss()
 
-    for epoch in tqdm(range(cur_epoch, epochs)):
+    for epoch in epochs:
         recon_losses = []
         model.train()
-        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in loader:
+        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in tqdm(loader):
             optimizer.zero_grad()
             cur_protein_graph = cur_protein
 
@@ -167,22 +167,22 @@ def main():
                                                             hidden_size=hyper_params['embedding_dim'], nhead=hyper_params['decoder_n_head'],
                                                             n_layers=hyper_params['decoder_n_layer'],
                                                             max_length=hyper_params['max_mol_len']))
-    device = torch.device('cuda' if torch.cuda.is_available() else 'mps')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
 
-    load_model = False
+    load_model = True
     cur_epoch = 0
     if load_model:
         model_path = "./"
-        loaded = torch.load(f'{model_path}/model.pt')
-        model.load_state_dict(loaded['model_state_dict'], map_location=device)
+        loaded = torch.load(f'{model_path}/model.pt', map_location=device)
+        model.load_state_dict(loaded['model_state_dict'])
         tokenizer = load_tokenizer_from_file(f'{model_path}/tokenizer_object.json')
-        optimizer = loaded['optimizer_state_dict']
-        cur_epoch = loaded['cur_epoch']
+        optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
+        cur_epoch = loaded['epoch']
 
     train_loader = DataLoader(train_ds, batch_size=2, shuffle=True)
-    training(model, optimizer, tokenizer, train_loader, 20, device, cur_epoch=cur_epoch)
+    training(model, optimizer, tokenizer, train_loader, 32, device, cur_epoch=cur_epoch)
 
 if __name__ == "__main__":
     main()
