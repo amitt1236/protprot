@@ -22,7 +22,7 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
     for epoch in tqdm(range(cur_epoch, epochs)):
         recon_losses = []
         model.train()
-        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in loader:
+        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in tqdm(loader):
             optimizer.zero_grad()
             cur_protein_graph = cur_protein
 
