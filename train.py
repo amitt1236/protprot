@@ -181,7 +181,7 @@ def main():
     #     # optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
     torch.backends.cudnn.benchmark = True
 
-    train_loader = DataLoader(train_ds, batch_size=32, shuffle=True, num_workers=6)
+    train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=6)
     training(model, optimizer, tokenizer, train_loader, 50, device, cur_epoch=cur_epoch)
     
 if __name__ == "__main__":
