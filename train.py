@@ -176,13 +176,12 @@ def main():
     if load_model:
         model_path = "./"
         loaded = torch.load(f'{model_path}/model.pt', map_location=device)
-        model.load_state_dict(loaded['model_state_dict'])
+        model.load_state_dict(loaded)
         tokenizer = load_tokenizer_from_file(f'{model_path}/tokenizer_object.json')
-        optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
-        cur_epoch = loaded['epoch']
+        # optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
 
     train_loader = DataLoader(train_ds, batch_size=2, shuffle=True)
     training(model, optimizer, tokenizer, train_loader, 32, device, cur_epoch=cur_epoch)
-
+    
 if __name__ == "__main__":
     main()
