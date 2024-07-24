@@ -180,7 +180,7 @@ def main():
     #     tokenizer = load_tokenizer_from_file(f'{model_path}/tokenizer_object.json')
     #     # optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
 
-    train_loader = DataLoader(train_ds, batch_size=32, shuffle=True, num_workers=8, pin_memory=True, prefetch_factor=4)
+    train_loader = DataLoader(train_ds, batch_size=32, shuffle=True, num_workers=8, pin_memory=True, prefetch_factor=10)
     training(model, optimizer, tokenizer, train_loader, 64, device, cur_epoch=cur_epoch)
     
 if __name__ == "__main__":
