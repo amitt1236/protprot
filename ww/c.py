@@ -1,7 +1,7 @@
 import torch
 
-his_state_dict = torch.load('modelb.pt', map_location='cpu')
-my_state_dict  = torch.load('model.pt', map_location='cpu')['model_state_dict']
+his_state_dict = torch.load('model-7.pt', map_location='cpu')
+my_state_dict  = torch.load('cc.pt', map_location='cpu')
 
 keywords = ['decoder', 'mol_encoder']
 
