@@ -173,13 +173,14 @@ def main():
 
     load_model = True
     cur_epoch = 0
-    # if load_model:
-    #     model_path = "./"
-    #     loaded = torch.load(f'{model_path}/model.pt', map_location=device)S
-    #     model.load_state_dict(loaded)
-    #     tokenizer = load_tokenizer_from_file(f'{model_path}/tokenizer_object.json')
-    #     # optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
-    
+    if load_model:
+        model_path = "./"
+        loaded = torch.load(f'{model_path}/model.pt', map_location=device)
+        model.load_state_dict(loaded['model_state_dict'])
+        tokenizer = load_tokenizer_from_file(f'{model_path}/tokenizer_object.json')
+        # optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
+        cur_epoch = loaded['epoch']
+
     torch.backends.cudnn.benchmark = True
     train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=6)
     training(model, optimizer, tokenizer, train_loader, 50, device, cur_epoch=cur_epoch)
