@@ -21,7 +21,7 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
     model.train()
     for epoch in tqdm(range(cur_epoch, epochs)):
         recon_losses = []
-        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in loader:
+        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in tqdm(loader):
             optimizer.zero_grad()
             cur_protein_graph = cur_protein
 
@@ -152,7 +152,7 @@ def main():
     print('*' *20, 'parameters', '*' * 20)
 
     train_data_dir = './data/fsmol/train_data.csv'
-    protein_graph_dir = './train_graphs'
+    protein_graph_dir = './train_graphs/train_graphs'
     tokenizer = load_tokenizer_from_file ('./data/base_tok.json')
 
     train_ds = InteractionsDataset(train_data_dir, protein_graph_dir, tokenizer)
