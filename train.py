@@ -179,6 +179,7 @@ def main():
     #     model.load_state_dict(loaded)
     #     tokenizer = load_tokenizer_from_file(f'{model_path}/tokenizer_object.json')
     #     # optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
+    torch.backends.cudnn.benchmark = True
 
     train_loader = DataLoader(train_ds, batch_size=32, shuffle=True, num_workers=6)
     training(model, optimizer, tokenizer, train_loader, 50, device, cur_epoch=cur_epoch)
