@@ -181,7 +181,7 @@ def main():
     #     # optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
 
     train_loader = DataLoader(train_ds, batch_size=32, shuffle=True, num_workers=8)
-    training(model, optimizer, tokenizer, train_loader, 32, device, cur_epoch=cur_epoch)
+    training(model, optimizer, tokenizer, train_loader, 64, device, cur_epoch=cur_epoch)
     
 if __name__ == "__main__":
     main()
