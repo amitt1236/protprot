@@ -9,6 +9,7 @@ from torch.optim import Adam
 from pathlib import Path
 from tqdm import tqdm
 import torch.nn as nn
+import math
 import gc
 import copy
 import torch
@@ -21,7 +22,11 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
     model.train()
     for epoch in tqdm(range(cur_epoch, epochs)):
         recon_losses = []
-        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in loader:
+        for step, (cur_tok_backbone, cur_tok_chain, cur_protein, _, _) in enumerate(loader):
+            t = cos_anneal(0, len(loader), 3e-4, 1.25e-6, step)
+            for g in optimizer.param_groups:
+                g['lr'] = t
+
             optimizer.zero_grad()
             cur_protein_graph = cur_protein
 
@@ -57,7 +62,26 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
             print("*"  * 20 + "model saved" + "*" * 20)
         
         gc.collect()
-            
+
+def cos_anneal(e0: float, e1: float, t0: float, t1: float, e: float) -> float:
+    """
+    Ramp from (e0, t0) to (e1, t1) through a cosine schedule based on e in [e0, e1].
+
+    Parameters:
+    e0 (float): Start of the epoch range.
+    e1 (float): End of the epoch range.
+    t0 (float): Start value (e.g., initial learning rate).
+    t1 (float): End value (e.g., final learning rate).
+    e (float): Current epoch.
+
+    Returns:
+    float: Interpolated value at epoch e based on the cosine annealing schedule.
+    """
+    alpha = max(0, min(1, (e - e0) / (e1 - e0)))  # what fraction of the way through are we
+    alpha = 1.0 - math.cos(alpha * math.pi / 2)  # warp through cosine
+    t = alpha * t1 + (1 - alpha) * t0  # interpolate accordingly
+    return t
+
 def validation_step(model, tokenizer, hyper_params, device, split=1, prot_path = './test_graphs'):
     from torch_geometric.data.batch import Batch
     if split == 0:
@@ -124,6 +148,19 @@ def validation_step(model, tokenizer, hyper_params, device, split=1, prot_path =
             print(f'sim: {avg_similarity}, {std_similarity}')
             print(f'validity: {validity}')
 
+def get_latest_model_dir(models_dir='./models'):
+    # List all directories in the models directory
+    model_dirs = [d for d in Path(models_dir).iterdir() if d.is_dir()]
+    
+    # Sort directories by creation time
+    model_dirs.sort(key=lambda x: os.path.getctime(x), reverse=True)
+    
+    # Return the latest directory
+    if model_dirs:
+        return model_dirs[0]
+    else:
+        return None
+    
 def main():
     hyper_params = {
         'bs': 2,
@@ -174,7 +211,7 @@ def main():
     load_model = True
     cur_epoch = 0
     if load_model:
-        model_path = "./"
+        model_path = get_latest_model_dir()
         loaded = torch.load(f'{model_path}/model.pt', map_location=device)
         model.load_state_dict(loaded['model_state_dict'])
         tokenizer = load_tokenizer_from_file(f'{model_path}/tokenizer_object.json')
@@ -182,7 +219,7 @@ def main():
         cur_epoch = loaded['epoch']
 
     torch.backends.cudnn.benchmark = True
-    train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=6)
+    train_loader = DataLoader(train_ds, batch_size=2, shuffle=True, num_workers=2)
     training(model, optimizer, tokenizer, train_loader, 50, device, cur_epoch=cur_epoch)
     
 if __name__ == "__main__":
