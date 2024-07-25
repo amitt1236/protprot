@@ -22,7 +22,7 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
     model.train()
     for epoch in tqdm(range(cur_epoch, epochs)):
         recon_losses = []
-        for step, (cur_tok_backbone, cur_tok_chain, cur_protein, _, _) in enumerate(loader):
+        for step, (cur_tok_backbone, cur_tok_chain, cur_protein, _, _) in tqdm(enumerate(loader)):
             t = cos_anneal(0, len(loader), 3e-4, 1.25e-6, step)
             for g in optimizer.param_groups:
                 g['lr'] = t
