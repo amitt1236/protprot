@@ -222,9 +222,9 @@ def main():
     cur_epoch = 0
     if load_model:
         model_path = get_latest_model_dir()
-        loaded = torch.load(f'{model_path}/model.pt', map_location=device)
+        loaded = torch.load(os.path.join(model_path,'model.pt'), map_location=device)
         model.load_state_dict(loaded['model_state_dict'])
-        tokenizer = load_tokenizer_from_file(f'{model_path}/tokenizer_object.json')
+        tokenizer = load_tokenizer_from_file(os.path.join(model_path,'tokenizer_object.json'))
         # optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
         cur_epoch = loaded['epoch']
 
