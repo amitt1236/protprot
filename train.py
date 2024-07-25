@@ -5,7 +5,7 @@ from torch_geometric.loader import DataLoader
 from evaluate import generate_molecules
 from evaluate import evaluate_task
 from datetime import datetime
-from torch.optim import Adam
+from torch.optim import Adam, AdamW
 from pathlib import Path
 from tqdm import tqdm
 import torch.nn as nn
@@ -22,10 +22,7 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
     model.train()
     for epoch in tqdm(range(cur_epoch, epochs)):
         recon_losses = []
-        for step, (cur_tok_backbone, cur_tok_chain, cur_protein, _, _) in enumerate(loader):
-            t = cos_anneal(0, len(loader), 3e-4, 1.25e-6, step)
-            for g in optimizer.param_groups:
-                g['lr'] = t
+        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in loader:
 
             optimizer.zero_grad()
             cur_protein_graph = cur_protein
@@ -62,25 +59,6 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
             print("*"  * 20 + "model saved" + "*" * 20)
         
         gc.collect()
-
-def cos_anneal(e0: float, e1: float, t0: float, t1: float, e: float) -> float:
-    """
-    Ramp from (e0, t0) to (e1, t1) through a cosine schedule based on e in [e0, e1].
-
-    Parameters:
-    e0 (float): Start of the epoch range.
-    e1 (float): End of the epoch range.
-    t0 (float): Start value (e.g., initial learning rate).
-    t1 (float): End value (e.g., final learning rate).
-    e (float): Current epoch.
-
-    Returns:
-    float: Interpolated value at epoch e based on the cosine annealing schedule.
-    """
-    alpha = max(0, min(1, (e - e0) / (e1 - e0)))  # what fraction of the way through are we
-    alpha = 1.0 - math.cos(alpha * math.pi / 2)  # warp through cosine
-    t = alpha * t1 + (1 - alpha) * t0  # interpolate accordingly
-    return t
 
 def validation_step(model, tokenizer, hyper_params, device, split=1, prot_path = './test_graphs'):
     from torch_geometric.data.batch import Batch
@@ -216,7 +194,8 @@ def main():
                                                             max_length=hyper_params['max_mol_len']))
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
-    optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
+    # optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
+    optimizer = AdamW(model.parameters(), lr=hyper_params['lr'], betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01)
 
     load_model = True
     cur_epoch = 0
