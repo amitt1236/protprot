@@ -152,7 +152,7 @@ def get_latest_model_dir(models_dir='./models'):
 def main():
     hyper_params = {
         'bs': 2,
-        'lr': 0.0001,
+        'lr': 0.0005,
         'weight_decay': 0.,
         'epochs': 100,
         'max_mol_len': 128,
