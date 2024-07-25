@@ -164,7 +164,7 @@ def get_latest_model_dir(models_dir='./models'):
         
         # Ensure there's only one inner directory and return it
         if len(inner_dirs) == 1:
-            return os.path.join(model_dirs, inner_dirs[0])
+            return os.path.join((str(latest_dir)), str(inner_dirs[0]))
         else:
             return None
     else:
