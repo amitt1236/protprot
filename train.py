@@ -155,11 +155,21 @@ def get_latest_model_dir(models_dir='./models'):
     # Sort directories by creation time
     model_dirs.sort(key=lambda x: os.path.getctime(x), reverse=True)
     
-    # Return the latest directory
+    # Get the latest directory
     if model_dirs:
-        return model_dirs[0]
+        latest_dir = model_dirs[0]
+        
+        # List all directories in the latest directory
+        inner_dirs = [d for d in latest_dir.iterdir() if d.is_dir()]
+        
+        # Ensure there's only one inner directory and return it
+        if len(inner_dirs) == 1:
+            return os.path.join(model_dirs, inner_dirs[0])
+        else:
+            return None
     else:
         return None
+
     
 def main():
     hyper_params = {
