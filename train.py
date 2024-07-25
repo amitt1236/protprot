@@ -195,7 +195,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     # optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
-    optimizer = AdamW(model.parameters(), lr=hyper_params['lr'], betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01)
+    optimizer = AdamW(model.parameters(), lr=hyper_params['lr'], betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, fused=True)
 
     load_model = True
     cur_epoch = 0
