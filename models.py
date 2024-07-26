@@ -7,7 +7,7 @@ class InteractionEncoder(nn.Module):
     def __init__(self, out_dim, hidden, ns, nv):
         super(InteractionEncoder, self).__init__()
         self.prot_enc = Protmod(ns=ns, nv=nv)
-        self.net = nn.Linear(hidden, out_dim)
+        self.net = nn.Linear(hidden, out_dim - 2)
 
     def forward(self, g):
         x = self.prot_enc(g)

@@ -22,7 +22,7 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
     model.train()
     for epoch in tqdm(range(cur_epoch, epochs)):
         recon_losses = []
-        for cur_tok_backbone, cur_tok_chain, cur_protein, _, _ in loader:
+        for cur_tok_backbone, cur_tok_chain, cur_protein, add_info in loader:
 
             optimizer.zero_grad()
             cur_protein_graph = cur_protein
@@ -33,7 +33,7 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
             target_mask, target_padding_mask = create_target_masks(decoder_tokenized_in, device, tokenizer.token_to_id('<pad>'))
 
             mol_embeds = model.mol_encoder(encoder_tokenized_in)
-            prot_embed = torch.unsqueeze(model.prot_encoder(cur_protein_graph), dim=1)
+            prot_embed = torch.unsqueeze(torch.concat((model.prot_encoder(cur_protein_graph), add_info), dim=1), dim=1)
             memory = torch.concat([prot_embed, mol_embeds], dim=1)
 
             logits = model.decoder(decoder_tokenized_in, memory, target_mask=target_mask,
@@ -197,7 +197,7 @@ def main():
     # optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
     optimizer = AdamW(model.parameters(), lr=hyper_params['lr'], betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, fused=True)
 
-    load_model = False
+    load_model = True
     cur_epoch = 0
     if load_model:
         model_path = get_latest_model_dir()

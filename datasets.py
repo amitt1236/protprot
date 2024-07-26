@@ -42,7 +42,7 @@ class InteractionsDataset(Dataset):
             cur_tok_backbone = torch.tensor(self.tokenizer.encode(cur_backbone).ids, dtype=torch.int32)
 
             add_info = torch.tensor([LABEL_MAP[cur_label], INTERACTION_TYPE.get(cur_assay_type, UNKNOWN_TYPE)])
-            return cur_tok_backbone, cur_tok_chain, cur_protein, cur_label, add_info
+            return cur_tok_backbone, cur_tok_chain, cur_protein, add_info
 
 
 class FSMolDataSet(Dataset):
