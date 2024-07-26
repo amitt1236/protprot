@@ -9,7 +9,6 @@ from torch.optim import Adam, AdamW
 from pathlib import Path
 from tqdm import tqdm
 import torch.nn as nn
-import math
 import gc
 import copy
 import torch
@@ -33,7 +32,7 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
             target_mask, target_padding_mask = create_target_masks(decoder_tokenized_in, device, tokenizer.token_to_id('<pad>'))
 
             mol_embeds = model.mol_encoder(encoder_tokenized_in)
-            prot_embed = torch.unsqueeze(torch.concat((model.prot_encoder(cur_protein_graph), add_info), dim=1), dim=1)
+            prot_embed = torch.unsqueeze(torch.concat((model.prot_encoder(cur_protein_graph), add_info.to(device)), dim=1), dim=1)
             memory = torch.concat([prot_embed, mol_embeds], dim=1)
 
             logits = model.decoder(decoder_tokenized_in, memory, target_mask=target_mask,
