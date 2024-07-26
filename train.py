@@ -45,7 +45,7 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
             recon_losses.append(recon_loss)
         
         print(f'epoch: {epoch} loss : {sum(recon_losses) / len(recon_losses)}')
-        if epoch != 0 and epoch !=1:
+        if epoch != 0 and epoch > 10:
             cur_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             output_dir = Path(f'./models/{cur_time}/epoch{epoch + 1}')
             output_dir.mkdir(parents=True, exist_ok=True)
