@@ -5,7 +5,7 @@ from torch_geometric.loader import DataLoader
 from evaluate import generate_molecules
 from evaluate import evaluate_task
 from datetime import datetime
-from torch.optim import Adam, AdamW, SGD
+from torch.optim import Adam, AdamW
 from pathlib import Path
 from tqdm import tqdm
 import torch.nn as nn
@@ -46,7 +46,7 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
         print(f'epoch: {epoch} loss : {sum(recon_losses) / len(recon_losses)}')
         if epoch != 0 and epoch > 10:
             cur_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-            output_dir = Path(f'./models2/{cur_time}/epoch{epoch + 1}')
+            output_dir = Path(f'./models/{cur_time}/epoch{epoch + 1}')
             output_dir.mkdir(parents=True, exist_ok=True)
 
             torch.save({
@@ -194,19 +194,18 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     # optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
-    # optimizer = AdamW(model.parameters(), lr=hyper_params['lr'], betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, fused=True)
+    optimizer = AdamW(model.parameters(), lr=hyper_params['lr'], betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, fused=True)
 
     load_model = False
     cur_epoch = 0
     if load_model:
-        model_path = './models/2024_07_28_17_15_36'
+        model_path = get_latest_model_dir()
         loaded = torch.load(os.path.join(model_path,'model.pt'), map_location=device)
         model.load_state_dict(loaded['model_state_dict'])
         tokenizer = load_tokenizer_from_file(os.path.join(model_path,'tokenizer_object.json'))
         # optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
         cur_epoch = loaded['epoch']
-    
-    optimizer = SGD(model.parameters(), lr=1e-6,momentum=0.9, nesterov=True)
+
     torch.backends.cudnn.benchmark = True
     train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=6)
     training(model, optimizer, tokenizer, train_loader, 50, device, cur_epoch=cur_epoch)
