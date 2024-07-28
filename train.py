@@ -205,7 +205,7 @@ def main():
     # optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
     optimizer = AdamW(model.parameters(), lr=hyper_params['lr'], betas=(0.9, 0.999), eps=1e-06, weight_decay=0.01, fused=True)
 
-    load_model = False
+    load_model = True
     cur_epoch = 0
     if load_model:
         model_path = get_latest_model_dir()
