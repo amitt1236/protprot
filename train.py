@@ -15,13 +15,14 @@ import torch
 import os
 
 def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
+    NUM_ACCUMULATION_STEPS = 4
 
     print(f'model has: {sum(p.numel() for p in model.parameters() if p.requires_grad)} parameters')
     recon_loss_fn = nn.CrossEntropyLoss()
     model.train()
     for epoch in tqdm(range(cur_epoch, epochs)):
         recon_losses = []
-        for cur_tok_backbone, cur_tok_chain, cur_protein, add_info in loader:
+        for idx, (cur_tok_backbone, cur_tok_chain, cur_protein, add_info) in enumerate(loader):
 
             optimizer.zero_grad()
             cur_protein_graph = cur_protein
@@ -39,9 +40,17 @@ def training(model, optimizer, tokenizer, loader, epochs, device, cur_epoch=0):
                                     target_padding_mask=target_padding_mask)
             
             recon_loss = recon_loss_fn(logits.reshape(-1, logits.shape[-1]), decoder_tokenized_tgt.reshape(-1).to(torch.long))
-            recon_loss.backward()
-            optimizer.step()
             recon_losses.append(recon_loss)
+
+            # Normalize the Gradients
+            recon_loss = recon_loss / NUM_ACCUMULATION_STEPS
+            recon_loss.backward()
+            
+            if ((idx + 1) % NUM_ACCUMULATION_STEPS == 0) or (idx + 1 == len(loader)):
+                # Update Optimizer
+                optimizer.step()
+                optimizer.zero_grad()
+
         
         print(f'epoch: {epoch} loss : {sum(recon_losses) / len(recon_losses)}')
         if epoch != 0 and epoch > 10:
