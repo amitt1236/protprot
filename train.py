@@ -206,7 +206,7 @@ def main():
         # optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
         cur_epoch = loaded['epoch']
     
-    optimizer = SGD(model.parameters(), lr=1e-4,momentum=0.9, nesterov=True, fused=True)
+    optimizer = SGD(model.parameters(), lr=1e-4,momentum=0.9, nesterov=True)
     torch.backends.cudnn.benchmark = True
     train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=6)
     training(model, optimizer, tokenizer, train_loader, 50, device, cur_epoch=cur_epoch)
