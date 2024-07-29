@@ -217,7 +217,7 @@ def main():
     optimizer = AdamW(model.parameters(), lr=hyper_params['lr'], betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, fused=True)
     torch.backends.cudnn.benchmark = True
     train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=6)
-    training(model, optimizer, tokenizer, train_loader, 50, device, cur_epoch=cur_epoch)
+    training(model, optimizer, tokenizer, train_loader, 70, device, cur_epoch=cur_epoch)
     
 if __name__ == "__main__":
     main()
