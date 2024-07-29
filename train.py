@@ -160,7 +160,7 @@ def get_latest_model_dir(models_dir='./models'):
 def main():
     hyper_params = {
         'bs': 2,
-        'lr': 3e-4,
+        'lr': 6e-4,
         'weight_decay': 0.,
         'epochs': 100,
         'max_mol_len': 128,
@@ -203,7 +203,6 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     # optimizer = Adam(model.parameters(), lr=hyper_params['lr'], weight_decay=hyper_params['weight_decay'])
-    optimizer = AdamW(model.parameters(), lr=hyper_params['lr'], betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, fused=True)
 
     load_model = True
     cur_epoch = 0
@@ -214,7 +213,8 @@ def main():
         tokenizer = load_tokenizer_from_file(os.path.join(model_path,'tokenizer_object.json'))
         # optimizer = optimizer.load_state_dict(loaded['optimizer_state_dict'])
         cur_epoch = loaded['epoch']
-
+    
+    optimizer = AdamW(model.parameters(), lr=hyper_params['lr'], betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, fused=True)
     torch.backends.cudnn.benchmark = True
     train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=6)
     training(model, optimizer, tokenizer, train_loader, 50, device, cur_epoch=cur_epoch)
